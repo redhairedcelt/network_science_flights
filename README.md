@@ -10,3 +10,4 @@
 ## Some Questions to explore
 - Look at flights by day, and maybe eventually by month.  What are the trends?  Are there differences across different airline or at different airports?
 - Do different airlines operate more or less are different airports?
+- Need geo coords for all the nodes in our data so I can plot them.

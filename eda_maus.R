@@ -27,11 +27,18 @@ str(df)
 summary(df)
 head(df)
 
+# How many airports are there?
+
 
 ## Lets try to build a network from edges
 edges <- select(df, DEST, ORIGIN)
 head(edges)
 flight_graph <- graph_from_data_frame(edges, directed=T)
+# This takes a pretty long time to run...
+#plot(flight_graph)
+
+# Here's all the airports we have flights to or from in the data
+V(flight_graph)
 
 # Let's look at the degree of some airports
 plot(degree(flight_graph))
@@ -42,7 +49,6 @@ hist(degree(flight_graph))
 # Whole network kept freezing my computer, so lets just plot the first 10,000 edges
 sample_edges <- graph_from_data_frame(edges[1:10000,], directed=T)
 plot(sample_edges)
-
 
 # Plot on a map.  Once I get the geo coords in, we can start messing around with visuals. 
 # I'd like to do a time lapse to show the flights over days/months with different colors
