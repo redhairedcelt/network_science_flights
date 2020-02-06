@@ -83,7 +83,27 @@ origin_counts <- edge_locs_no_na %>%
 # Plot on a map.  Once I get the geo coords in, we can start messing around with visuals. 
 # I'd like to do a time lapse to show the flights over days/months with different colors
 # for different attributes, such as airline or how early/late each flight is.
-df_map <- edge_locs_clean[order(-edge_locs_clean$total),][1:100,]
+df_map <- edge_locs_clean[order(-edge_locs_clean$total),][1:10,]
+
+map("state", col="grey20", fill=TRUE, bg="black", lwd=0.1)
+
+points(x=df_map$origin_lon, y=df_map$origin_lat, pch=10, col="red")
+points(x=df_map$dest_lon, y=df_map$dest_lat, pch=10, col="red")
+
+col.1 <- adjustcolor("orange red", alpha=0.2)
+col.2 <- adjustcolor("orange", alpha=0.2)
+edge.pal <- colorRampPalette(c(col.1, col.2), alpha = TRUE)
+edge.col <- edge.pal(100)
+
+for(i in 1:nrow(df_map))  {
+  
+  arc <- gcIntermediate( c(df_map$origin_lon[i], df_map$origin_lat[i]), 
+                         c(df_map$dest_lon[i], df_map$dest_lat[i]), 
+                         n=1000, addStartEnd=TRUE )
+  edge.ind <- round(1000*df_map$total / max(df_map$total))
+  
+  lines(arc)
+}
 
 map("state", col="grey20", fill=TRUE, bg="black", lwd=0.1)
 
@@ -104,5 +124,3 @@ for(i in 1:nrow(df_map))  {
   
   lines(arc, col=edge.col[edge.ind], lwd=edge.ind/30)
 }
-
-
