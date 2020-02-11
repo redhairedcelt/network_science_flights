@@ -11,7 +11,7 @@ library(ggmap)
 
 setwd("C:/Users/alexj/OneDrive/Desktop/GW/Spring '20/DATS 6450 (Network)/network_science_flights/")
 
-data_path = "C:/Users/alexj/Downloads/Air_Data_2018.csv" # UPDATE PATH
+data_path = "data/Air_Data_2018.csv" # UPDATE PATH
 
 data <- fread(data_path, header = TRUE)
 data$V21 <- NULL
