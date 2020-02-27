@@ -6,7 +6,7 @@ library(igraph)
 
 # load dataset 2018
 setwd('/Users/carolinesklaver/Desktop/Network_DS/ProjectEDA')
-data = read.csv('Air_Data_2018.csv', header = TRUE)
+data = read.csv('data/Air_Data_2018.csv', header = TRUE)
 
 
 # Metrics

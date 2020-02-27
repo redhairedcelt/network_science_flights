@@ -22,71 +22,45 @@ loadPkg('geosphere')
 library(geosphere)
 loadPkg('ggmap')
 library(ggmap)
-
-df <- read_csv('data/Air_Data_2018.csv')
-df$index <- rownames(df)
-
-## Using ggmap's geocoding service, which I can enable with my Google API
-# Hiding my key since this repo is public.  Writing to my renv.
-
-#register_google(key = , write = TRUE)
-
-# Now get all the nodes as a set, make a new df, and add lon and lat columns
-origins <- select(df, ORIGIN, index)
-colnames(origins) <- c('iata_code','index')
-
-dests <- (select(df, DEST, index))
-colnames(dests) <- c('iata_code','index')
-
-nodes = unique(c(origins$iata_code, dests$iata_code))
-node_df <- as.data.frame(nodes)
-node_df$nodes <- as.character(node_df$nodes)
-node_df$lon <- NA
-node_df$lat <- NA
-
-# This block of code will actually pass the nodes to Google's API for reverse geolocation
-# Dont run it too often, only so many API calls
-#for(i in 1:nrow(node_df))
-#{
-#  print(node_df$nodes[i])
-  # need to add '+Airport' to resolve ambiguities
-#  result <- geocode(paste((node_df$nodes[i]),'+Airport'))
-#  node_df$lon[i] <- as.numeric(result$lon)
-#  node_df$lat[i] <- as.numeric(result$lat)
-#}
-
-#node_df$iata_code <- node_df$nodes
-#node_df <- select(node_df, c(iata_code, lat, lon))
-#write_csv(node_df, 'data/node_locations.csv')
+loadPkg('ggplot2')
+library(ggplot2)
 
 node_df <- read_csv('data/node_locations.csv')
-
-# Now get all the nodes as a set, make a new df, and add lon and lat columns
+# the number of nas in the node_df:
+print(nrow(node_df)-nrow(na.omit(node_df)))
 
 df <- read_csv('data/Air_Data_2018.csv')
+# Now get all the nodes as a set, make a new df, and add lon and lat columns
 df$index <- rownames(df)
-
-#airlines <- unique(df_full$UNIQUE_CARRIER_NAME)
-
-#df <- subset(df_full, UNIQUE_CARRIER_NAME == 'Delta Air Lines Inc.')
 
 origins <- (select(df, ORIGIN, index))
 colnames(origins) <- c('iata_code','index')
-
 dests <- (select(df, DEST, index))
 colnames(dests) <- c('iata_code','index')
 
-## Merge locs to the edges
+# Merge locs to origins and destinations
 origins_loc <- merge(origins, node_df, by = 'iata_code', full.x = T)
 colnames(origins_loc) <- c('origin_iata', 'index', 'origin_lat', 'origin_lon')
-
 dests_loc <- merge(dests, node_df, by = 'iata_code', full.x = T)
 colnames(dests_loc) <- c('dest_iata', 'index', 'dest_lat', 'dest_lon')
-
+# merge the origins and destinations together
 edge_locs <- merge(origins_loc, dests_loc, by = 'index')
-
+# merge the edge_locs with geocoords back to the original df
 df_locs <- merge(edge_locs, df, by='index')
+# drop any nas
+print(nrow(edge_locs))
+print(nrow(na.omit(edge_locs)))
+nas <- filter(edge_locs, is.na(origin_lat) | is.na(dest_lat))
+length_nas <- nrow(nas)
+print(length_nas)
 
+missing_airports_origin <- (select(nas, origin_iata)) 
+missing_airports_dest <- (select(nas, origin_iata))
+missing_airports <- unique(rbind(missing_airports_origin, missing_airports_dest))
+
+edge_locs[is.na(edge_locs)]
+
+subset(df, is.na()) 
 
 edge_locs_no_na <- na.omit(edge_locs)
 
@@ -101,8 +75,12 @@ edge_locs_clean <- edge_locs_no_na %>%
 # I'd like to do a time lapse to show the flights over days/months with different colors
 # for different attributes, such as airline or how early/late each flight is.
 
+df_full <- edge_locs_clean[order(-edge_locs_clean$total),]
 
-df_map <- edge_locs_clean[order(-edge_locs_clean$total),][1:2000,]
+df_map <- edge_locs_clean[order(-edge_locs_clean$total),]
+
+
+
 
 map("state", col="grey20", fill=TRUE, bg="black", lwd=0.1)
 points(x=df_map$origin_lon, y=df_map$origin_lat, pch=19, cex=.2, col='blue')
@@ -158,11 +136,18 @@ plot_map = function(network, map_color){
 
 #airlines <- unique(df_full$UNIQUE_CARRIER_NAME)
 
+delta <- subset(df_locs, UNIQUE_CARRIER_NAME == 'Delta Air Lines Inc.')
+united <- subset(df_locs, UNIQUE_CARRIER_NAME == 'Delta Air Lines Inc.')
+southwest <- subset(df_locs, UNIQUE_CARRIER_NAME == 'Delta Air Lines Inc.')
+
+plot_map(df_map, 'blue')
+plot_map(united, 'red')
+
 delta <- subset(df_full, UNIQUE_CARRIER_NAME == 'Delta Air Lines Inc.')
 united <- subset(df_full, UNIQUE_CARRIER_NAME == 'Delta Air Lines Inc.')
 southwest <- subset(df_full, UNIQUE_CARRIER_NAME == 'Delta Air Lines Inc.')
 
-plot_map(delta, 'blue')
-plot_map(united, 'red')
+#airlines <- unique(df_full$UNIQUE_CARRIER_NAME)
 
+#df <- subset(df_full, UNIQUE_CARRIER_NAME == 'Delta Air Lines Inc.')
 
