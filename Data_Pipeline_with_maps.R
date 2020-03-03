@@ -86,8 +86,8 @@ library(maps)
 library(ggmap)
 
 plot_network = function (df_map, point_color = 'blue', line_color = point_color,
-                         map_title = 'Top Routes', background_fill = 'transparent',
-                         map_state_lines = 'white', map_fill = 'grey' ) 
+                         map_title = 'Top Routes', background_fill = 'grey',
+                         map_state_lines = 'black', map_fill = 'black' ) 
 {
   
   df_map <- subset(df_map, ORIGIN!=DEST)
@@ -95,7 +95,8 @@ plot_network = function (df_map, point_color = 'blue', line_color = point_color,
   df_map <-subset(df_map, origin_lat!=dest_lat)
 
   # scaling function.  Could use some work.
-  range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+  range01 <- function(x){(x+1-min(x))/(max(x)-min(x))}
+  #range01 <- function(x){(log(x)-min(log(x)))/(max(log(x))-min(log(x)))}
   # need to plot state lines
   states_map <- map_data("state")  
   
@@ -124,7 +125,11 @@ plot_network = function (df_map, point_color = 'blue', line_color = point_color,
   gg <- gg + geom_map(data=states_map, map=states_map, aes(map_id=region),
                       color=map_state_lines, fill=map_fill, size=0.25) +
     expand_limits(x=states_map$long, y=states_map$lat)
-  gg <- gg + labs(x=NULL, y=NULL, title=map_title) + theme_void()
+  gg <- gg + labs(x=NULL, y=NULL, title=map_title) + 
+  theme_void() + # Empty theme without axis lines and texts
+    theme(panel.background = element_rect(fill=background_fill, colour=background_fill),
+          plot.background = element_rect(fill=background_fill, color=background_fill))
+  #coord_map("albers", lat0=39, lat1=49) +
   #coord_map("albers", lat0=39, lat1=49) +
   gg <- gg +
     # The geom points are plotted scaled 0 to 1.  The factor can be adjusted 

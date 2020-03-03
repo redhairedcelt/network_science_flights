@@ -26,6 +26,11 @@ df_full <- subset(df_full, origin_lon!=dest_lon)
 ## plot_network function requires a df with iata_codes for origin and departure
 # as well as the lat and long for each airport.  It will remove selp loops.
 
+
+library(ggplot2)
+library(maps)
+library(ggmap)
+
 plot_network = function (df_map, point_color = 'blue', line_color = point_color,
                         map_title = 'Top Routes', background_fill = 'transparent',
                         map_state_lines = 'black', map_fill = 'white' ) 
@@ -62,10 +67,12 @@ plot_network = function (df_map, point_color = 'blue', line_color = point_color,
   gg <- gg + geom_map(data=states_map, map=states_map, aes(map_id=region),
                       color=map_state_lines, fill=map_fill, size=0.25) +
             expand_limits(x=states_map$long, y=states_map$lat)
-  gg <- gg + labs(x=NULL, y=NULL, title=map_title) 
-    #theme(panel.background = element_rect(fill = background_fill),
-    #      plot.background = element_rect(fill = background_fill, color = NA))
+  gg <- gg + labs(x=NULL, y=NULL, title=map_title) +
+    theme_void() + # Empty theme without axis lines and texts
+    theme(panel.background = element_rect(colour =  background_fill),
+          plot.background = element_rect(fill = background_fill, color = NA))
     #coord_map("albers", lat0=39, lat1=49) +
+
   gg <- gg +
     # The geom points are plotted scaled 0 to 1.  The factor can be adjusted 
     geom_point(data=df_map, aes(x=origin_lon, y=origin_lat), col=point_color, 
