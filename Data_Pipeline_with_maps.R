@@ -125,7 +125,11 @@ plot_network = function (df_map, point_color = 'blue', line_color = point_color,
   gg <- gg + geom_map(data=states_map, map=states_map, aes(map_id=region),
                       color=map_state_lines, fill=map_fill, size=0.25) +
     expand_limits(x=states_map$long, y=states_map$lat)
-  gg <- gg + labs(x=NULL, y=NULL, title=map_title) + theme_void()
+  gg <- gg + labs(x=NULL, y=NULL, title=map_title) + 
+  theme_void() + # Empty theme without axis lines and texts
+    theme(panel.background = element_rect(fill=background_fill, colour=background_fill),
+          plot.background = element_rect(fill=background_fill, color=background_fill))
+  #coord_map("albers", lat0=39, lat1=49) +
   #coord_map("albers", lat0=39, lat1=49) +
   gg <- gg +
     # The geom points are plotted scaled 0 to 1.  The factor can be adjusted 
