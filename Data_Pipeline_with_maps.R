@@ -86,8 +86,8 @@ library(maps)
 library(ggmap)
 
 plot_network = function (df_map, point_color = 'blue', line_color = point_color,
-                         map_title = 'Top Routes', background_fill = 'transparent',
-                         map_state_lines = 'white', map_fill = 'grey' ) 
+                         map_title = 'Top Routes', background_fill = 'grey',
+                         map_state_lines = 'black', map_fill = 'black' ) 
 {
   
   df_map <- subset(df_map, ORIGIN!=DEST)
@@ -95,7 +95,8 @@ plot_network = function (df_map, point_color = 'blue', line_color = point_color,
   df_map <-subset(df_map, origin_lat!=dest_lat)
 
   # scaling function.  Could use some work.
-  range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+  range01 <- function(x){(x+1-min(x))/(max(x)-min(x))}
+  #range01 <- function(x){(log(x)-min(log(x)))/(max(log(x))-min(log(x)))}
   # need to plot state lines
   states_map <- map_data("state")  
   
