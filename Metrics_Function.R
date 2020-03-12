@@ -2,7 +2,7 @@
 library(dplyr)
 library(igraph)
 
-setwd('/Users/carolinesklaver/Desktop/Network_DS/ProjectEDA')
+#setwd('/Users/carolinesklaver/Desktop/Network_DS/ProjectEDA')
 
 
 # ________________________________________________________________________________________
@@ -11,6 +11,10 @@ setwd('/Users/carolinesklaver/Desktop/Network_DS/ProjectEDA')
 
 data = read.csv('Air_Data_2018.csv', header = TRUE)
 data_98 = read.csv('Air_Data_1998.csv', header = TRUE)
+southwest_2018 = data[data$UNIQUE_CARRIER_NAME == 'Southwest Airlines Co.',]
+american_2018 = data[data$UNIQUE_CARRIER_NAME == 'American Airlines Inc.',] 
+delta_2018 = data[data$UNIQUE_CARRIER_NAME == 'Delta Air Lines Inc.',]  
+united_2018 = data[data$UNIQUE_CARRIER_NAME == 'United Air Lines Inc.',] 
 
 get_metrics <- function(dataframe) {
 
@@ -49,4 +53,57 @@ get_metrics <- function(dataframe) {
   
 }
 
-metrics_1998 = get_metrics(data)
+metrics_2018 = get_metrics(data)
+metrics_1998 = get_metrics(data_98)
+metrics_sw_2018 = get_metrics(southwest_2018)
+metrics_american_2018 = get_metrics(american_2018)
+metrics_delta_2018 = get_metrics(delta_2018)
+metrics_united_2018 = get_metrics(united_2018)
+
+
+head(metrics_1998[order(-metrics_1998$Closeness_Centrality),])
+head(metrics_2018[order(-metrics_2018$Closeness_Centrality),])
+head(metrics_sw_2018[order(-metrics_sw_2018$Closeness_Centrality),])
+head(metrics_american_2018[order(-metrics_american_2018$Closeness_Centrality),])
+head(metrics_delta_2018[order(-metrics_delta_2018$Closeness_Centrality),])
+head(metrics_united_2018[order(-metrics_united_2018$Closeness_Centrality),])
+
+
+# generate random networks and compare
+
+#specify df you want as a graph
+df <- data
+g <- graph_from_edgelist(data %>% select(ORIGIN, DEST) %>% as.matrix())
+
+#get number of vertices, edges, and p(edge)
+numb_edges <- length(E(g))
+numb_vertices <-length(V(g))
+p_edges <- (numb_edges/(numb_vertices*(numb_vertices-1)))
+
+#iterate through 1000 random gnp graphs and save the degree
+deg_list <- c()
+for(i in 1:1000)  {
+  g <- sample_gnp(n=numb_vertices, p=p_edges, directed=TRUE)
+  deg <- degree(g)
+  deg_list <- c(deg_list, deg)
+}
+deg_list_gnp <- deg_list
+
+#iterate through 1000 random gnp graphs and save the degree
+deg_list <- c()
+for(i in 1:1000)  {
+  g <- sample_gnm(n=numb_vertices, m=numb_edges, directed=TRUE)
+  deg <- degree(g)
+  deg_list <- c(deg_list, deg)
+}
+deg_list_gmp <- deg_list
+
+#make histograms of the two random model distributions 
+#and the original network's degree distribution
+hist(deg_list_gnp, main='Histogram of Gnp Model', 
+     xlab='Degree', col='purple')
+hist(deg_list_gmp, main='Histogram of Gnm Model',
+     xlab='Degree', col='green')
+hist(degree(g), main='Histogram of Original Air Traffic Network',
+     xlab='Degree', col='orange')
+
