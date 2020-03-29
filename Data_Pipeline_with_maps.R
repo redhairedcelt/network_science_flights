@@ -169,3 +169,46 @@ plot_network(df_map=WN_2018, map_title='Southwest in 2018', point_color='orange'
 
 plot_network(df_map=UA_1998, map_title="United in 1998", point_color='gold3')
 plot_network(df_map=UA_2018, map_title='United in 2018', point_color='gold3')
+
+
+w_df <- WN_2018 %>% select(ORIGIN, DEST, flights) %>% rename(from = ORIGIN, to = DEST, weight = flights)
+w_df <- w_df[1:500]
+g_w <- graph.data.frame(w_df, directed = TRUE)
+plot(g_w)
+
+
+library(threejs)
+
+g_d3 <- igraph_to_networkD3(g_w)
+# then we canmake a simple plot
+simpleNetwork(g_d3$links)
+# force network gives us more options.
+forceNetwork(Links = g_d3$links, Nodes = g_d3$nodes, Source = "source",
+             Target = "target", NodeID = "name", Group = "name", bounded = TRUE,
+             opacityNoHover = TRUE, opacity = .6)
+
+
+# Set node size based on degree size:
+V(g_w)$size <- log(degree(g_w)) #disparity was too great without a transformation
+
+# The labels are currently node IDs.
+V(g_w)$label.color <- "black"
+# Set edge width based on weight:
+E(g_w)$width <- 2
+
+#change arrow size and edge color:
+E(g_w)$arrow.size <- .2
+E(g_w)$edge.color <- "gray80"
+
+
+l <- layout_with_lgl(g_w,
+  maxiter = 200,
+  maxdelta = vcount(g_w),
+  area = vcount(g_w)^6,
+  coolexp = 1.5,
+  root = NULL
+)
+plot(g_w, layout=l)
+
+
+tkplot(g_w)

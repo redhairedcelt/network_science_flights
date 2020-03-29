@@ -9,6 +9,52 @@ library(igraph)
 # FUNCTION FOR METRICS
 # function that can take in any df and pump out metrics as df
 
+# read in pipeline data
+all_flights_2018 = read.csv('all_flights_2018.csv')
+
+# select origin, dest, flights, make flights = to weight
+test = all_flights_2018 %>% select(ORIGIN, DEST, flights) %>% rename(from = ORIGIN, to = DEST, weight = flights)
+
+test <- filter(test, weight>0)
+# make into igraph object
+test_graph_wgt <- graph.data.frame(test, directed = TRUE)
+
+plot(betweenness(test_graph_wgt))
+mean(betweenness(test_graph_wgt))
+
+mean(betweenness(g))
+
+plot(edge_betweenness(test_graph_wgt))
+mean(edge_betweenness(test_graph_wgt))
+
+
+# make into igraph object
+test_graph_wgt <- graph.data.frame(test, directed = TRUE)
+# check that it is weighted
+is_weighted(test_graph_wgt)
+print(V(test_graph_wgt))
+plot(degree(test_graph_wgt))
+print(diameter(test_graph_wgt))
+E(test_graph_wgt)
+
+
+g <- graph_from_edgelist(dataframe %>% select(ORIGIN, DEST) %>% as.matrix())
+diameter(g)
+farthest_vertices(g)
+
+mean(betweenness(test_graph_wgt))
+
+edge_betweenness(g)
+
+farthest_vertices(g)
+farthest_vertices(test_graph_wgt)
+
+dist_mat <- distances(g, v=V(g), to=V(g))
+write.csv(dist_mat, 'dist_mat.csv')
+
+dist_mat <- distances(test_graph_wgt, v=V(test_graph_wgt), to=V(test_graph_wgt))
+write.csv(dist_mat, 'dist_mat_weighted.csv')
+
 data = read.csv('Air_Data_2018.csv', header = TRUE)
 data_98 = read.csv('Air_Data_1998.csv', header = TRUE)
 southwest_2018 = data[data$UNIQUE_CARRIER_NAME == 'Southwest Airlines Co.',]
