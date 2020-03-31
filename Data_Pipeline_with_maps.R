@@ -172,7 +172,7 @@ plot_network(df_map=UA_2018, map_title='United in 2018', point_color='gold3')
 
 
 w_df <- WN_2018 %>% select(ORIGIN, DEST, flights) %>% rename(from = ORIGIN, to = DEST, weight = flights)
-w_df <- w_df[1:500]
+w_df <- w_df[1:100]
 g_w <- graph.data.frame(w_df, directed = TRUE)
 plot(g_w)
 
@@ -200,12 +200,15 @@ E(g_w)$width <- 2
 E(g_w)$arrow.size <- .2
 E(g_w)$edge.color <- "gray80"
 
+plot(g_w)
+
+
 
 l <- layout_with_lgl(g_w,
-  maxiter = 200,
+  maxiter = 500,
   maxdelta = vcount(g_w),
   area = vcount(g_w)^6,
-  coolexp = 1.5,
+  coolexp = 10,
   root = NULL
 )
 plot(g_w, layout=l)
