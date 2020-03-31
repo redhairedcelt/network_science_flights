@@ -224,7 +224,7 @@ plot_network = function (df_map, point_color = 'blue', line_color = point_color,
     # The geom points are plotted scaled 0 to 1.  The factor can be adjusted 
     geom_point(data=df_map, aes(x=origin_lon, y=origin_lat), 
                #col=point_color, 
-               shape = 21, colour = "black", fill = point_color,
+               shape = 21, colour = 'Black', fill = point_color,
                size=(df_map$airpot_counts_scaled)*4) +
     geom_curve(data = df_map, 
                aes(x=origin_lon, y=origin_lat, xend=dest_lon, yend=dest_lat), 
@@ -233,12 +233,17 @@ plot_network = function (df_map, point_color = 'blue', line_color = point_color,
                col = edge.col[df_map$color_ind], 
                # size is scaled 0 to 1
                size = (df_map$total_flts_scaled),
-               curvature = 0.3, angle = 90, ncp = 5)
+               curvature = 0.3, angle = 90, ncp = 5) +
+    geom_point(data=df_map, aes(x=origin_lon, y=origin_lat), 
+               #col=point_color, 
+               shape = 21, colour = "Red", fill = point_color,
+               size=(df_map$airpot_counts_scaled)*4) 
   gg
 }
 
-plot_network(feb_grouped_covid, map_title = "Direct Routes from COVID-Designated International Arrival Airports to other Domestic Airports with at least 1 Daily Flight (Feb 2018)", point_color = "Black", map_fill = 'white', line_color = 'black')
+plot_network(feb_grouped_covid, map_title = "Direct Routes from COVID-Designated International Arrival Airports to other Domestic Airports with at least 1 Daily Flight (Feb 2018)", point_color = "Red", map_fill = 'white', line_color = 'black')
 
+# Plot the network using D3
 library(networkD3)
 d3_graph <- igraph_to_networkD3(covid_graph)
 
@@ -248,3 +253,34 @@ forceNetwork(d3_graph$links, d3_graph$nodes,
              Source = "source", Target = "target", Value = "value",
              NodeID = "name", Group = "name", zoom = TRUE, arrows = TRUE,
              opacityNoHover = 1)
+
+
+# patricks attempt at a large network plot
+w_df <- feb_grouped_covid %>% select(ORIGIN, DEST, flights) %>% rename(from = ORIGIN, to = DEST, weight = flights)
+g_w <- graph.data.frame(w_df, directed = TRUE)
+
+# set colors using vertex attributes
+g_w <- set_vertex_attr(g_w, 'Screening', index = V(g_w)[airports], value='red')
+g_w <- set_vertex_attr(g_w, 'Screening', index = -V(g_w)[airports], value='yellow')
+V(g_w)$color <- V(g_w)$Screening
+
+# Set node size based on degree size:
+V(g_w)$size <- log(degree(g_w)) #disparity was too great without a transformation
+
+# The labels are currently node IDs.
+V(g_w)$label.color <- "black"
+V(g_w)$label.cex <- .4
+V(g_w)$label.dist <- 0
+# Set edge width based on weight:
+E(g_w)$width <- .5
+
+#change arrow size and edge color:
+E(g_w)$arrow.size <- .01
+E(g_w)$edge.color <- "gray80"
+
+l <- layout_with_lgl(g_w)
+# really th big change here is the 'asp' which is default 1.  
+# with 0, it drops aspect making layout pretty much null but a better plot for bigger networks
+plot(g_w, layout=layout_with_fr,  asp = 0, curved=T, 
+     main="Screening Sites for Coronavirus and Connected Airports")
+
