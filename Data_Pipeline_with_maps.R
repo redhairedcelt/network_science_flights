@@ -172,7 +172,7 @@ plot_network(df_map=UA_2018, map_title='United in 2018', point_color='gold3')
 
 
 w_df <- WN_2018 %>% select(ORIGIN, DEST, flights) %>% rename(from = ORIGIN, to = DEST, weight = flights)
-w_df <- w_df[1:100]
+#w_df <- w_df[1:100]
 g_w <- graph.data.frame(w_df, directed = TRUE)
 plot(g_w)
 
@@ -213,5 +213,6 @@ l <- layout_with_lgl(g_w,
 )
 plot(g_w, layout=l)
 
+assortativity <- assortativity(g_w, airports)
 
 tkplot(g_w)

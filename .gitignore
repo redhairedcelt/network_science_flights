@@ -9,3 +9,6 @@
 .RData
 *.csv
 test_leaflet.R
+.DS_Store
+.RData
+.DS_Store

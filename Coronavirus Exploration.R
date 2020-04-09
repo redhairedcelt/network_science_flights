@@ -284,3 +284,4 @@ l <- layout_with_lgl(g_w)
 plot(g_w, layout=layout_with_fr,  asp = 0, curved=T, 
      main="Screening Sites for Coronavirus and Connected Airports")
 
+assortativity <- assortativity(g_w, airports)
