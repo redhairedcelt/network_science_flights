@@ -193,7 +193,7 @@ plot_network_unweighted = function (df_map, point_color = 'blue', line_color = p
                # color is selected by index from the predefined color pallete above
                # needs to be rounded to an int between 1 and 10
                col = line_color,
-               alpha=.06,
+               alpha=.04,
                curvature = 0.3, angle = 90, ncp = 5)
   gg
   
@@ -223,66 +223,6 @@ plot_network(df_map=UA_2018, map_title='United in 2018', point_color='gold3')
 
 plot_network(df_map=all_flights_1998, map_title="Continental US Aviation in 1998", point_color='red')
 plot_network(df_map=all_flights_2018, map_title="Continental US Aviation in 2018", point_color='red')
-
-
-
-
-w_df <- WN_2018 %>% select(ORIGIN, DEST, flights) %>% rename(from = ORIGIN, to = DEST, weight = flights)
-#w_df <- w_df[1:100]
-g_w <- graph.data.frame(w_df, directed = TRUE)
-plot(g_w)
-
-
-## WN VS DELTA
-
-# select origin, dest, flights, make flights = to weight
-dl = DL_2018 %>% select(ORIGIN, DEST, flights) %>% rename(from = ORIGIN, to = DEST, weight = flights)
-# remove weights less than 0
-dl <- filter(dl, weight>0)
-# make into igraph object
-dl_g <- graph.data.frame(dl, directed = TRUE)
-# diameter
-# mean degree centrality
-dl_deg <- (degree(dl_g, mode = "all"))
-# betweenness
-dl_betweenness <- (betweenness(dl_g))
-dl_df <- data.frame(dl_betweenness, dl_deg)
-
-# select origin, dest, flights, make flights = to weight
-wn = WN_2018 %>% select(ORIGIN, DEST, flights) %>% rename(from = ORIGIN, to = DEST, weight = flights)
-# remove weights less than 0
-wn <- filter(wn, weight>0)
-# make into igraph object
-wn_g <- graph.data.frame(wn, directed = TRUE)
-# diameter
-# mean degree centrality
-wn_deg <- (degree(wn_g, mode = "all"))
-# betweenness
-wn_betweenness <- (betweenness(wn_g))
-wn_df <- data.frame(wn_betweenness, wn_deg)
-
-compare <- merge(wn_df, dl_df, by=0, all=TRUE)
-
-
-
-hist(wn_betweenness)
-hist(dl_betweenness)
-
-hist(wn_betweenness)
-hist(dl_betweenness)
-
-dl_betweenness[dl_betweenness > 2000]
-wn_betweenness[wn_betweenness > 2000]
-
-wn <- data.frame(wn_betweenness)
-
-
-
-
-
-
-
-
 
 
 # Plotting newtorks for coronavirus without spatial
