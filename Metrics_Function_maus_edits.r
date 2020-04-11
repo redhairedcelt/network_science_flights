@@ -55,8 +55,8 @@ write.csv(dist_mat, 'dist_mat.csv')
 dist_mat <- distances(test_graph_wgt, v=V(test_graph_wgt), to=V(test_graph_wgt))
 write.csv(dist_mat, 'dist_mat_weighted.csv')
 
-data = read.csv('Air_Data_2018.csv', header = TRUE)
 data_98 = read.csv('Air_Data_1998.csv', header = TRUE)
+data = read.csv('Air_Data_2018.csv', header = TRUE)
 southwest_2018 = data[data$UNIQUE_CARRIER_NAME == 'Southwest Airlines Co.',]
 american_2018 = data[data$UNIQUE_CARRIER_NAME == 'American Airlines Inc.',] 
 delta_2018 = data[data$UNIQUE_CARRIER_NAME == 'Delta Air Lines Inc.',]  
@@ -165,3 +165,5 @@ write.csv(summary_metrics, 'summary_metrics.csv')
 #  }
 #row.names(summary_metrics) <- dfs_names
 #colnames(summary_metrics) <- col_names
+
+V(AA_1998)
