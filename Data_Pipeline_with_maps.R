@@ -101,8 +101,8 @@ plot_network = function (df_map, point_color = 'blue', line_color = point_color,
   states_map <- map_data("state")  
   
   # Make a color pallate between two colors.  Grey is default first color.
-  col.1 <- adjustcolor('grey', alpha=0.4)
-  col.2 <- adjustcolor(line_color, alpha=.8)
+  col.1 <- adjustcolor('grey', alpha=0.1)
+  col.2 <- adjustcolor(line_color, alpha=.2)
   edge.pal <- colorRampPalette(c(col.1, col.2), alpha = TRUE)
   edge.col <- edge.pal(10)
   # add a column for color indexing scaled by number of flights on each leg.
@@ -146,6 +146,57 @@ plot_network = function (df_map, point_color = 'blue', line_color = point_color,
                size = (df_map$total_flts_scaled),
                curvature = 0.3, angle = 90, ncp = 5)
   gg
+
+}
+
+plot_network_unweighted = function (df_map, point_color = 'blue', line_color = point_color,
+                         map_title = 'Top Routes', background_fill = 'grey',
+                         map_state_lines = 'black', map_fill = 'black' ) 
+{
+  
+  df_map <- subset(df_map, ORIGIN!=DEST)
+  df_map <- na.omit(df_map)
+  df_map <-subset(df_map, origin_lat!=dest_lat)
+  
+  # scaling function.  Could use some work.
+  range01 <- function(x){(x+1-min(x))/(max(x)-min(x))}
+  #range01 <- function(x){(log(x)-min(log(x)))/(max(log(x))-min(log(x)))}
+  # need to plot state lines
+  states_map <- map_data("state")  
+  
+  # find counts of flights leaving by iata code, add to df_map as airport counts
+  airport_counts_df <- as.data.frame(df_map %>% group_by(ORIGIN) %>% 
+                                       summarise(counts = n()))
+  df_map <- merge(df_map, airport_counts_df, by='ORIGIN')
+  # scale and add back to df
+  df_map$airpot_counts_scaled <- range01(df_map$counts)
+  
+  # actual plotting
+  gg <- ggplot()
+  gg <- gg + geom_map(data=states_map, map=states_map, aes(map_id=region),
+                      color=map_state_lines, fill=map_fill, size=0.25) +
+    expand_limits(x=states_map$long, y=states_map$lat)
+  gg <- gg + labs(x=NULL, y=NULL, title=map_title) + 
+    theme_void() + # Empty theme without axis lines and texts
+    theme(panel.background = element_rect(fill=background_fill, colour=background_fill),
+          plot.background = element_rect(fill=background_fill, color=background_fill))
+  #coord_map("albers", lat0=39, lat1=49) +
+  #coord_map("albers", lat0=39, lat1=49) +
+  gg <- gg +
+    # The geom points are plotted scaled 0 to 1.  The factor can be adjusted 
+    geom_point(data=df_map, aes(x=origin_lon, y=origin_lat), 
+               #col=point_color, 
+               shape = 21, colour = "black", fill = point_color,
+               size=(df_map$airpot_counts_scaled)*4) +
+    geom_curve(data = df_map, 
+               aes(x=origin_lon, y=origin_lat, xend=dest_lon, yend=dest_lat), 
+               # color is selected by index from the predefined color pallete above
+               # needs to be rounded to an int between 1 and 10
+               col = line_color,
+               alpha=.06,
+               curvature = 0.3, angle = 90, ncp = 5)
+  gg
+  
 }
 
 
@@ -170,6 +221,11 @@ plot_network(df_map=WN_2018, map_title='Southwest in 2018', point_color='orange'
 plot_network(df_map=UA_1998, map_title="United in 1998", point_color='gold3')
 plot_network(df_map=UA_2018, map_title='United in 2018', point_color='gold3')
 
+plot_network(df_map=all_flights_1998, map_title="Continental US Aviation in 1998", point_color='red')
+plot_network(df_map=all_flights_2018, map_title="Continental US Aviation in 2018", point_color='red')
+
+
+
 
 w_df <- WN_2018 %>% select(ORIGIN, DEST, flights) %>% rename(from = ORIGIN, to = DEST, weight = flights)
 #w_df <- w_df[1:100]
@@ -177,6 +233,59 @@ g_w <- graph.data.frame(w_df, directed = TRUE)
 plot(g_w)
 
 
+## WN VS DELTA
+
+# select origin, dest, flights, make flights = to weight
+dl = DL_2018 %>% select(ORIGIN, DEST, flights) %>% rename(from = ORIGIN, to = DEST, weight = flights)
+# remove weights less than 0
+dl <- filter(dl, weight>0)
+# make into igraph object
+dl_g <- graph.data.frame(dl, directed = TRUE)
+# diameter
+# mean degree centrality
+dl_deg <- (degree(dl_g, mode = "all"))
+# betweenness
+dl_betweenness <- (betweenness(dl_g))
+dl_df <- data.frame(dl_betweenness, dl_deg)
+
+# select origin, dest, flights, make flights = to weight
+wn = WN_2018 %>% select(ORIGIN, DEST, flights) %>% rename(from = ORIGIN, to = DEST, weight = flights)
+# remove weights less than 0
+wn <- filter(wn, weight>0)
+# make into igraph object
+wn_g <- graph.data.frame(wn, directed = TRUE)
+# diameter
+# mean degree centrality
+wn_deg <- (degree(wn_g, mode = "all"))
+# betweenness
+wn_betweenness <- (betweenness(wn_g))
+wn_df <- data.frame(wn_betweenness, wn_deg)
+
+compare <- merge(wn_df, dl_df, by=0, all=TRUE)
+
+
+
+hist(wn_betweenness)
+hist(dl_betweenness)
+
+hist(wn_betweenness)
+hist(dl_betweenness)
+
+dl_betweenness[dl_betweenness > 2000]
+wn_betweenness[wn_betweenness > 2000]
+
+wn <- data.frame(wn_betweenness)
+
+
+
+
+
+
+
+
+
+
+# Plotting newtorks for coronavirus without spatial
 library(threejs)
 
 g_d3 <- igraph_to_networkD3(g_w)
@@ -216,3 +325,4 @@ plot(g_w, layout=l)
 assortativity <- assortativity(g_w, airports)
 
 tkplot(g_w)
+
