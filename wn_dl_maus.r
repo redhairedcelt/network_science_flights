@@ -2,6 +2,11 @@ library(dplyr)
 library(igraph)
 options(scipen=999)
 
+print(test)
+
+all_flights_2018 <- all_flights_2018 %>% filter(flights>0)
+all_flights_1998 <- all_flights_1998 %>% filter(flights>0)
+
 get_null_df_and_metrics <-function(df) {
   # select origin, dest, flights, make flights = to weight
   air_df = df %>% select(ORIGIN, DEST) %>% rename(from = ORIGIN, to = DEST)
@@ -14,6 +19,7 @@ get_null_df_and_metrics <-function(df) {
   
   unweighted_g <- graph_from_edgelist(df %>% select(ORIGIN, DEST) %>% as.matrix())
   g <- unweighted_g
+  print(is_weighted(g))
   
   # get metrics of observed network
   observed_deg <- (degree(g, mode = "all"))
@@ -68,11 +74,65 @@ all_2018_rand_Df <- results$rand_df
 all_2018_metrics <- results$metrics_df
 all_2018_summary <- data.frame(colMeans(all_2018_metrics))
 
+plot_network_unweighted(df_map=all_1998_rand_Df , map_title="Null Model, 1998", point_color='green')
+plot_network_unweighted(df_map=all_flights_1998, map_title='Unweighted Network, 1998', point_color='red')
+
+plot_network_unweighted(df_map=all_2018_rand_Df , map_title="Null Model, 2018", point_color='green')
+plot_network_unweighted(df_map=all_flights_2018, map_title='Unweighted Network, 2018', point_color='red', alpha = .01,)
+
+hist(all_2018_metrics$observed_deg, main="Degree Distribution of 2018 Network", col='red',
+     xlab="Node Degree")
+hist(all_2018_metrics$rand_deg, main="Degree Distribuion of 2018 Null Model", col='green',
+     xlab="Node Degree")
+hist(all_1998_metrics$observed_deg, main="Degree Distribution of 1998 Network", col='red',
+     xlab="Node Degree")
+hist(all_1998_metrics$rand_deg, main="Degree Distribuion of 1998 Null Model", col='green',
+     xlab="Node Degree")
+
+#write.csv(all_2018_metrics, 'all_2018_metrics.csv')
+sum(all_flights_1998$flights)
+summary(all_flights_1998)
 
 # Make graphics for delta
 results <- get_null_df_and_metrics(DL_2018)
 dl_2018_rand_df <- results$rand_df
 dl_2018_metrics <- results$metrics_df
+
+
+get_weighted_metrics <-function(df) {
+  # select origin, dest, flights, make flights = to weight
+  air_df = df %>% select(ORIGIN, DEST) %>% rename(from = ORIGIN, to = DEST) 
+  
+  weighted_df <- (df %>% select(ORIGIN, DEST, flights) %>% 
+                    rename(from = ORIGIN, to = DEST, weight = flights))
+  weighted_g <- graph.data.frame(weighted_df, directed = TRUE)
+  g <- weighted_g
+  print(is_weighted(g))
+  
+  # get metrics of observed network
+  observed_strength <- (strength(g))
+  observed_betweenness <- (betweenness(g))
+  observed_mean_dist <- mean_distance(g)
+  observed_diameter <- diameter(g)
+  
+  # get random network params
+  numb_edges <- length(E(g))
+  numb_vertices <-length(V(g))
+  numb_flights <- sum(df$flights) # attempt to make rand grapgh with edges == total weight
+  
+  # make a new df with all the stats for later use
+  metrics_df <- data.frame(observed_betweenness, observed_strength, observed_mean_dist, observed_diameter,
+                           numb_vertices, numb_edges, numb_flights)
+  print(colMeans(metrics_df))
+  return(metrics_df)
+}
+
+all_1998_weighted_metrics <- get_weighted_metrics(all_flights_1998)
+all_1998_weighted_summary <- data.frame(colMeans(all_1998_weighted_metrics))
+
+all_2018_weighted_metrics <- get_weighted_metrics(all_flights_2018)
+all_2018_weighted_summary <- data.frame(colMeans(all_2018_weighted_metrics))
+
 
 hist(dl_2018_metrics$observed_betweenness, main="Observed Network, Delta 2018", col='blue',
      xlab="Betweenness of Each Node")
@@ -119,7 +179,3 @@ hist(wn_2018_metrics$rand_deg, main="Null Model, Southwest 2018 ", col='gold',
 #wn_2018_rand_df$flights <- sample(1:5,nrow(wn_2018_rand_df),replace=TRUE)
 #WN_2018$flights <- sample(1:5,nrow(WN_2018),replace=TRUE)
 # use plot network function from "Data_Pipeline_with_maps"
-plot_network_unweighted(df_map=wn_2018_rand_df, map_title="Null Model, Southwest 2018", point_color='gold')
-plot_network_unweighted(df_map=WN_2018, map_title='Southwest in 2018, Unweighted', point_color='gold')
-
-

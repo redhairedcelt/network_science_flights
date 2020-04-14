@@ -150,7 +150,7 @@ plot_network = function (df_map, point_color = 'blue', line_color = point_color,
 }
 
 plot_network_unweighted = function (df_map, point_color = 'blue', line_color = point_color,
-                         map_title = 'Top Routes', background_fill = 'grey',
+                         map_title = 'Top Routes', background_fill = 'grey', alpha = .02,
                          map_state_lines = 'black', map_fill = 'black' ) 
 {
   
@@ -193,7 +193,7 @@ plot_network_unweighted = function (df_map, point_color = 'blue', line_color = p
                # color is selected by index from the predefined color pallete above
                # needs to be rounded to an int between 1 and 10
                col = line_color,
-               alpha=.04,
+               alpha=alpha,
                curvature = 0.3, angle = 90, ncp = 5)
   gg
   
