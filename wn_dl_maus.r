@@ -1,5 +1,6 @@
 library(dplyr)
 library(igraph)
+options(scipen=999)
 
 get_null_df_and_metrics <-function(df) {
   # select origin, dest, flights, make flights = to weight
@@ -17,11 +18,13 @@ get_null_df_and_metrics <-function(df) {
   # get metrics of observed network
   observed_deg <- (degree(g, mode = "all"))
   observed_betweenness <- (betweenness(g))
+  observed_mean_dist <- mean_distance(g)
+  observed_diameter <- diameter(g)
   
   # get random network params
   numb_edges <- length(E(g))
   numb_vertices <-length(V(g))
-  sum_weight <- sum(weighted_df$weight) # attempt to make rand grapgh with edges == total weight
+  numb_flights <- sum(df$flights) # attempt to make rand grapgh with edges == total weight
   p_edges <- (numb_edges/(numb_vertices*(numb_vertices-1)))
   
   # make random network
@@ -32,6 +35,8 @@ get_null_df_and_metrics <-function(df) {
   # get metrics from random network
   rand_betweenness = (betweenness(rand_g))
   rand_deg <- (degree(rand_g, mode='all'))
+  rand_mean_dist <- mean_distance(rand_g)
+  rand_diameter <- diameter(rand_g)  
   
   # make random g into a df
   rand_df <- as_data_frame(rand_g)
@@ -45,10 +50,24 @@ get_null_df_and_metrics <-function(df) {
   rand_df_coords_deduped <-  rand_df_coords[!duplicated(rand_df_coords), ]
   
   # make a new df with all the stats for later use
-  metrics_df <- data.frame(observed_betweenness, observed_deg, rand_betweenness, rand_deg)
+  metrics_df <- data.frame(observed_betweenness, observed_deg, observed_mean_dist, observed_diameter,
+                           rand_betweenness, rand_deg, rand_mean_dist, rand_diameter, 
+                           numb_vertices, numb_edges, numb_flights)
   print(colMeans(metrics_df))
   return(list('rand_df' =rand_df_coords_deduped, 'metrics_df' = metrics_df))
 }
+
+#Unweighted metrics for presentation
+results <- get_null_df_and_metrics(all_flights_1998)
+all_1998_rand_Df <- results$rand_df
+all_1998_metrics <- results$metrics_df
+all_1998_summary <- data.frame(colMeans(all_1998_metrics))
+
+results <- get_null_df_and_metrics(all_flights_2018)
+all_2018_rand_Df <- results$rand_df
+all_2018_metrics <- results$metrics_df
+all_2018_summary <- data.frame(colMeans(all_2018_metrics))
+
 
 # Make graphics for delta
 results <- get_null_df_and_metrics(DL_2018)
@@ -59,6 +78,21 @@ hist(dl_2018_metrics$observed_betweenness, main="Observed Network, Delta 2018", 
      xlab="Betweenness of Each Node")
 hist(dl_2018_metrics$rand_betweenness, main="Null Model, Delta 2018 ", col='blue',
      xlab="Betweenness of Each Node")
+hist(dl_2018_metrics$observed_deg, main="Observed Network, Delta 2018", col='blue',
+     xlab="Node Degree")
+hist(dl_2018_metrics$rand_deg, main="Null Model, Delta 2018 ", col='blue',
+     xlab="Node Degree")
+
+plot(log(dl_2018_metrics$observed_deg), log='y')
+plot(log(dl_2018_metrics$rand_deg), log='y')
+
+p <- ggplot(dl_2018_metrics, aes(x = (range), y=log(observed_deg))) + 
+  geom_point() +
+  scale_y_log10()
+p
+
+plot(log(wn_2018_metrics$observed_deg), log='y')
+plot(log(wn_2018_metrics$rand_deg), log='y')
 
 # Experimentation with random weights for the weighted graph
 #dl_2018_rand_df$flights <- sample(1:5,nrow(dl_2018_rand_df),replace=TRUE)
@@ -73,9 +107,13 @@ wn_2018_rand_df <- results$rand_df
 wn_2018_metrics <- results$metrics_df
 
 hist(wn_2018_metrics$observed_betweenness, main="Observed Network, Southwest 2018", col='gold',
-     xlab="Betweenness of Each Node")
+     xlab="Betweenness")
 hist(wn_2018_metrics$rand_betweenness, main="Null Model, Southwest 2018 ", col='gold',
-     xlab="Betweenness of Each Node")
+     xlab="Betweenness")
+hist(wn_2018_metrics$observed_deg, main="Observed Network, Southwest 2018", col='gold',
+     xlab="Degree")
+hist(wn_2018_metrics$rand_deg, main="Null Model, Southwest 2018 ", col='gold',
+     xlab="Degree")
 
 # Experimentation with random weights for the weighted graph
 #wn_2018_rand_df$flights <- sample(1:5,nrow(wn_2018_rand_df),replace=TRUE)
