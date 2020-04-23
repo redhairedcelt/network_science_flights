@@ -98,6 +98,23 @@ results <- get_null_df_and_metrics(DL_2018)
 dl_2018_rand_df <- results$rand_df
 dl_2018_metrics <- results$metrics_df
 
+#weighted diameter
+weighted_df <- (all_flights_1998 %>% select(ORIGIN, DEST, flights) %>% 
+                  rename(from = ORIGIN, to = DEST, weight = flights))
+g <- graph.data.frame(weighted_df, directed = TRUE)
+distance_weighted <- distances(g)
+
+
+farthest_vertices(g)
+get.diameter(g)
+diameter(g)
+
+unweighted_df <- (all_flights_1998 %>% select(ORIGIN, DEST) %>% 
+                  rename(from = ORIGIN, to = DEST))
+g <- graph.data.frame(unweighted_df, directed = TRUE)
+farthest_vertices(g)
+get.diameter(g)
+diameter(g)
 
 get_weighted_metrics <-function(df) {
   # select origin, dest, flights, make flights = to weight
